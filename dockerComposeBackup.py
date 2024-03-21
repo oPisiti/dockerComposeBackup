@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import pwd
 import re
+import shutil
 import subprocess
 
 
@@ -15,8 +16,9 @@ def main():
     parser.add_argument("--docker-path", help="Sets the directory in which the docker files are located. Default: ~/docker-Containers")
     parser.add_argument("--output-dir", help="Sets a custom output directory. Default: ~/")
     parser.add_argument("--output-name", help="Sets a custom output file name. Default: ~/docker-compose-archive.tar.7z")
-    parser.add_argument("-e", help="Enables encryption", action='store_true')
     parser.add_argument("-a", help="Appends files to archive if it already exists", action='store_true')
+    parser.add_argument("-e", help="Enables encryption", action='store_true')
+    parser.add_argument("-f", help="Forces creation/deletion of directories", action='store_true')
     args = parser.parse_args()
 
     # Configuration info
@@ -36,17 +38,20 @@ def main():
     if not args.output_name: OUTPUT_FILE_NAME = "docker-compose-archive.tar.7z"
     else:                    OUTPUT_FILE_NAME = args.output_name + ".tar.7z"
     
-    ENCRYPT = args.e
-    APPEND  = args.a
+    ENCRYPT    = args.e
+    APPEND     = args.a
+    FORCE_EXEC = args.f
 
     # Creating a tmp file
     try:
         os.mkdir(TMP_DIR_PATH)
     except FileExistsError as e:
-        confirm = input(f"File {TMP_DIR_PATH} already exists. Removing and recreate? (y/N) ")
-        if confirm != "y": return
+        if not FORCE_EXEC:
+            confirm = input(f"File {TMP_DIR_PATH} already exists. Removing and recreate? (y/N) ")
+            if confirm != "y": return        
         
-        subprocess.run(f"sudo rm -r {TMP_DIR_PATH}", shell=True, text=True)
+        shutil.rmtree(TMP_DIR_PATH)
+        
         os.mkdir(TMP_DIR_PATH)
         
     # Getting all docker-compose.yml paths
@@ -104,8 +109,7 @@ def main():
     else:       subprocess.run(f"cd {HOME_DIR} && tar -cf - {TMP_DIR_NAME} | 7za a -si {OUTPUT_DIR}{OUTPUT_FILE_NAME}", shell=True, text=True)    
     
     # Cleaning up tmp dir
-    subprocess.run(f"sudo rm -r {TMP_DIR_PATH}", shell=True, text=True)
-
+    shutil.rmtree(TMP_DIR_PATH)
 
 
 if __name__ == "__main__":
