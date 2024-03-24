@@ -42,7 +42,7 @@ def main():
     APPEND     = args.a
     FORCE_EXEC = args.f
 
-    # Creating a tmp file
+    # Creating a tmp directory
     try:
         os.mkdir(TMP_DIR_PATH)
     except FileExistsError as e:
@@ -55,7 +55,7 @@ def main():
         os.mkdir(TMP_DIR_PATH)
         
     # Getting all docker-compose.yml paths
-    compose_paths = subprocess.run(f"sudo find {DOCKER_FILES_DIR} -maxdepth 2 -type f -regex '{DOCKER_REGEX}'", shell=True, text=True, stdout=subprocess.PIPE).stdout
+    compose_paths = subprocess.run(f"find {DOCKER_FILES_DIR} -maxdepth 2 -type f -regex '{DOCKER_REGEX}' 2>/dev/null", shell=True, text=True, stdout=subprocess.PIPE).stdout
     compose_paths = compose_paths.split("\n")
     
     # The expected number of subdirectories of a path for a top level docker-compose.yml file
@@ -79,16 +79,17 @@ def main():
         try:
             os.mkdir(dir_to_create)
         except FileExistsError as e:
-            subprocess.run(f"sudo rm -r {dir_to_create}", shell=True, text=True)
+            shutil.rmtree(dir_to_create)
             os.mkdir(dir_to_create)
     
         # Moving docker-compose.yml files
-        subprocess.run(f"sudo cp {path} {dir_to_create}", shell=True, text=True)
+        subprocess.run(f"cp {path} {dir_to_create}", shell=True, text=True)
         
     # Deleting pre-existing archive is -a not set
-    if not APPEND and os.path.exists(OUTPUT_DIR + OUTPUT_FILE_NAME):
-        print(f"File {OUTPUT_DIR + OUTPUT_FILE_NAME} exists. Deleting")
-        subprocess.run(f"sudo rm -r {OUTPUT_DIR + OUTPUT_FILE_NAME}", shell=True, text=True)
+    archive_path_full = OUTPUT_DIR + OUTPUT_FILE_NAME
+    if not APPEND and os.path.exists(archive_path_full):
+        print(f"File {archive_path_full} exists. Deleting")
+        os.remove(archive_path_full)
 
     # Prompting for password
     if ENCRYPT:
