@@ -4,6 +4,14 @@ This tool finds all the docker-compose.yml fiels inside a specified directory.
 
 It then creates an archive containing all of them, while keeping the subdirectories structure. Encryption is supported.
 
+# Using the backup
+
+1. Unzip `docker-compose-archive.tar.7z`
+2. Copy `compose_all.sh` into the root of the compose files directories
+3. Run the bash script `compose_all.sh`
+
+This will recreate all of the docker containers for you
+
 ## Usage
 ```
 usage: dockerComposeBackup.py [-h] [--docker-path DOCKER_PATH] [--output-dir OUTPUT_DIR] [--output-name OUTPUT_NAME] [-e] [-a]
